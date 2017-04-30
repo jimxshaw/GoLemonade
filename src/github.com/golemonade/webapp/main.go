@@ -2,8 +2,10 @@ package main
 
 import (
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -17,10 +19,7 @@ func main() {
 		// always be a slash /.
 		requestedFile := r.URL.Path[1:]
 
-		// Look up the template with the name of the requested file
-		// and also adding the suffix. The user won't have to type
-		// .html every time in the url if we include the suffix.
-		t := templates.Lookup(requestedFile + ".html")
+		t := templates[requestedFile+".html"]
 		if t != nil {
 			err := t.Execute(w, nil)
 			if err != nil {
@@ -41,20 +40,57 @@ func main() {
 	http.ListenAndServe(":8000", nil)
 }
 
-func populateTemplates() *template.Template {
-	// Here's the container that has all of the templates we'll
-	// be loading in.
-	result := template.New("templates")
-
-	// Location where the templates are stored on the file system.
+// We return a map of strings to templates. Previously we had a single template
+// containing all other templates. Now we define a family of templates with each
+// one individually cloned from _layout.html and then pulling in the content
+// template that defines the look and feel for that template.
+func populateTemplates() map[string]*template.Template {
+	result := make(map[string]*template.Template)
 	const basePath = "templates"
-
-	// Parse the templates in the context of the result container.
-	template.Must(result.ParseGlob(basePath + "/*.html"))
-
-	// All the parsed out templates will be the children of this
-	// result template container. That doesn't matter to Go as
-	// it will look through the entire template tree when given
-	// a template to execute.
+	layout := template.Must(template.ParseFiles(basePath + "/_layout.html"))
+	template.Must(layout.ParseFiles(basePath+"/_header.html", basePath+"/_footer.html"))
+	dir, err := os.Open(basePath + "/content")
+	if err != nil {
+		panic("Failed to open template blocks directory: " + err.Error())
+	}
+	fis, err := dir.Readdir(-1)
+	if err != nil {
+		panic("Failed to read contents of content directory: " + err.Error())
+	}
+	for _, fi := range fis {
+		f, err := os.Open(basePath + "/content/" + fi.Name())
+		if err != nil {
+			panic("Failed to open template '" + fi.Name() + "'")
+		}
+		content, err := ioutil.ReadAll(f)
+		if err != nil {
+			panic("Failed to read content from file '" + fi.Name() + "'")
+		}
+		f.Close()
+		tmpl := template.Must(layout.Clone())
+		_, err = tmpl.Parse(string(content))
+		if err != nil {
+			panic("Failed to parse contents of '" + fi.Name() + "' as template")
+		}
+		result[fi.Name()] = tmpl
+	}
 	return result
 }
+
+// func populateTemplates() *template.Template {
+// 	// Here's the container that has all of the templates we'll
+// 	// be loading in.
+// 	result := template.New("templates")
+
+// 	// Location where the templates are stored on the file system.
+// 	const basePath = "templates"
+
+// 	// Parse the templates in the context of the result container.
+// 	template.Must(result.ParseGlob(basePath + "/*.html"))
+
+// 	// All the parsed out templates will be the children of this
+// 	// result template container. That doesn't matter to Go as
+// 	// it will look through the entire template tree when given
+// 	// a template to execute.
+// 	return result
+// }
