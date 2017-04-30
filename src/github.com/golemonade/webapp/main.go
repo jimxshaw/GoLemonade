@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	// Get our list of templates.
 	templates := populateTemplates()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
