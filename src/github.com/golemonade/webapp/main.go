@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"GoLemonade/src/github.com/golemonade/webapp/viewmodel"
 )
 
 func main() {
@@ -20,9 +22,11 @@ func main() {
 		// always be a slash /.
 		requestedFile := r.URL.Path[1:]
 
+		context := viewmodel.NewBase()
+
 		t := templates[requestedFile+".html"]
 		if t != nil {
-			err := t.Execute(w, nil)
+			err := t.Execute(w, context)
 			if err != nil {
 				log.Println(err)
 			}

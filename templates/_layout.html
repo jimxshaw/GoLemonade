@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Lemonade Stand Supply</title>
+<title>{{.Title}}</title>
 <link href="/css/app.css" rel="stylesheet" />
 <!-- 
-    The period . pass the data context to the block.
+    The dot . operator passes the data context to
+    wherever we want data to show up.
     Using template means we have to provide the named
     template. Using block means the named template is
     optional. 
+    // The dot . operator is required when using block.
 -->
 {{block "styles" .}}{{end}}
 </head>
 <body>
-	{{template "_header.html"}}
-    {{template "content"}}
-	{{template "_footer.html"}}
+	{{template "_header.html" .}}
+    {{template "content" .}}
+	{{template "_footer.html" .}}
     {{block "script" .}}{{end}}
 </body>
 </html>
