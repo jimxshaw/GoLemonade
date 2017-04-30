@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Lemonade Stand Supply</title>
-<link href="/css/app.css" rel="stylesheet" />
-</head>
-<body>
-	{{template "_header.html"}}
+{{define "content"}}
 	<form action="." method="post" class="row profile">
 		<div class="columns small-8 small-offset-2">
 			<div class="row">
@@ -67,6 +60,4 @@
 			</div>
 		</div>
 	</form>
-	{{template "_footer.html"}}
-</body>
-</html>
+{{end}}
